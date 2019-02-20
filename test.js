@@ -1,9 +1,9 @@
 
 var fs = require('fs')
-var neataptic = require('neataptic')
-var network = new neataptic.architect.LSTM(48, 24, 24, 24, 1)
-
 var bowie = require('./bowie.js')
+var neataptic = require('neataptic')
+
+var network = new neataptic.architect.LSTM(12, 12, 1)
 
 var x = bowie('./test.wav')
 
@@ -19,15 +19,14 @@ x.on('end', function () {
   x2.on('data', function (d) {
     dataset.push({ input: d, output: [1] })
   })
-
   x2.on('end', function () {
     console.log('finished 2')
     network.train(dataset, {
       log: 1,
       iterations: 10000,
-      error: 0.01,
+      error: 0.001,
       clear: true,
-      rate: 0.009,
+      rate: 0.01,
     });
     var model = network.toJSON()
     // save model

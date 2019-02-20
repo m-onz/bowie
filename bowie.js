@@ -7,11 +7,12 @@ var Framer = require('signal-windows').framer;
 var ham = undefined;
 var EV = require('events').EventEmitter
 
-function bowie (p) {
-  if (! (this instanceof bowie)) return new bowie (p)
+function bowie (p, batchSize) {
+  if (! (this instanceof bowie)) return new bowie (p, batchSize)
   var program = this
   var self = this
   self.mfcc = require('mfcc');
+  self.batchSize = batchSize || 12
   program.wav = p
   program.minFrequency = 300
   program.maxFrequency = 3500
@@ -40,7 +41,7 @@ function bowie (p) {
       var phasors = fft.fft(frame),
           phasorMagnitudes = fft.util.fftMag(phasors),
           result = self.mfcc(phasorMagnitudes, program.debug && true);
-        if (batch.length < 48) {
+        if (batch.length < self.batchSize) {
           result.forEach(function (i) {
             batch.push(clamp(convertRange(i, [ 0, 30 ], [ 0, 1 ] )))
           })
@@ -71,10 +72,7 @@ function bowie (p) {
                           program.minFrequency,
                           program.maxFrequency,
                           format.sampleRate);
-  });
-  // wr.on('end', function () {
-  //   process.exit(1);
-  // });
+  })
   fs.createReadStream(program.wav).on('end', function () {
     self.e.emit('end', true)
   }).pipe(wr)
